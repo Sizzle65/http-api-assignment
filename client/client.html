@@ -6,6 +6,80 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+    // Function to handle our xhr response
+    const handleResponse = (xhr) => {
+      // Grab the content section
+      const content = document.querySelector("#content");
+      const contentType = xhr.getResponseHeader("Content-Type");
+      let obj, parser, message;
+      
+      // Check the xhr status code and handle accordingly
+      switch(xhr.status) {
+        case 200: // Success
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 400: // Bad request 
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 401: // Unauthorized
+          content.innerHTML = `<b>Unauthorized</b>`;
+          break;
+        case 403: // Forbidden
+          content.innerHTML = `<b>Forbidden</b>`;
+          break;
+        case 404: // Not found 
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        case 500: // Internal server error 
+          content.innerHTML = `<b>Internal Server Error</b>`;
+          break;
+        case 501: // Not implemented
+          content.innerHTML = `<b>Not Implemented</b>`;
+          break;
+        default: // Default other errors we are not handling in this example
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+
+      // Parse the response depending on the content type returned
+      if (contentType == "application/json") {
+        obj = JSON.parse(xhr.response);
+        message = obj.message;
+      }
+      else{
+        parser = new DOMParser();
+        obj = parser.parseFromString(xhr.response, "text/xml");
+        message = obj.getElementsByTagName("message")[0].innerHTML;
+      }
+
+      // If the message exists, print it out
+      if(message) {
+          content.innerHTML += `<p>Message: ${message}</p>`
+        }
+      
+    };
+    
+    // Function to send ajax
+    const sendAjax = (url) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.setRequestHeader ("Accept", document.querySelector("#type").value);
+      
+      xhr.onload = () => handleResponse(xhr);
+      xhr.send();
+    };
+    
+    // Initialization function
+    const init = () => {
+      const sendButton = document.querySelector("#send");
+      
+      // Functions to call sendAjax for us with the correct parameters
+      const sendEvent = () => sendAjax(document.querySelector('#page').value);
+      
+      sendButton.addEventListener('click', sendEvent);
+    };
+
+    window.onload = init;
 
   </script>
 </head>
